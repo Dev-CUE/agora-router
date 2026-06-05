@@ -1,0 +1,21 @@
+system:
+  a2a:
+    max_speaker_calls: 10
+    max_rounds: 10
+    default_mode: "single"
+    allow_self_call: false
+    allow_cross_platform: false
+  wiki:
+    raw_logging_enabled: false
+    raw_path: "data/wiki/raw/"
+
+agents:
+  - id: "zeus"
+    url: "http://zeus-agent:3001"
+    a2a: { can_initiate: true,  allowed_targets: "*" }
+  - id: "hera"
+    url: "http://hera-agent:3002"
+    a2a: { can_initiate: true,  allowed_targets: "*" }
+  - id: "athena"
+    url: "http://athena-agent:3003"
+    a2a: { can_initiate: false, allowed_targets: [] }

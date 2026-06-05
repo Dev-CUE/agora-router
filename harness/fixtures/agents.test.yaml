@@ -1,0 +1,21 @@
+system:
+  a2a:
+    max_speaker_calls: 10
+    max_rounds: 10
+    default_mode: "single"
+    allow_self_call: false
+    allow_cross_platform: false
+  wiki:
+    raw_logging_enabled: true
+    raw_path: "harness/tmp/raw/"
+
+agents:
+  - id: "agentA"
+    url: "http://localhost:9101"
+    a2a: { can_initiate: true,  allowed_targets: "*" }
+  - id: "agentB"
+    url: "http://localhost:9102"
+    a2a: { can_initiate: true,  allowed_targets: "*" }
+  - id: "agentC"
+    url: "http://localhost:9103"
+    a2a: { can_initiate: false, allowed_targets: [] }
