@@ -1,0 +1,33 @@
+# config/agents.example.yaml
+# Copy this file to config/agents.yaml and fill in your actual values.
+# agents.yaml is gitignored and will never be committed.
+
+system:
+  a2a:
+    max_speaker_calls: 10      # Per-agent call limit (SINGLE & DIALOGUE)
+    max_rounds: 10             # DIALOGUE round limit
+    default_mode: "single"    # "single" | "dialogue"
+    allow_self_call: false
+    allow_cross_platform: false
+  wiki:
+    raw_logging_enabled: false  # Set true to drop raw logs to data/wiki/raw/
+    raw_path: "data/wiki/raw/"
+
+agents:
+  - id: "agent-a"                          # Unique agent identifier
+    url: "http://your-agent-a:3001"        # Agent server URL
+    a2a:
+      can_initiate: true                   # Can this agent initiate A2A?
+      allowed_targets: "*"                 # "*" = all | [] = receive only | ["agent-b"] = specific
+
+  - id: "agent-b"
+    url: "http://your-agent-b:3002"
+    a2a:
+      can_initiate: true
+      allowed_targets: "*"
+
+  - id: "agent-c"
+    url: "http://your-agent-c:3003"
+    a2a:
+      can_initiate: false                  # Receive-only agent
+      allowed_targets: []

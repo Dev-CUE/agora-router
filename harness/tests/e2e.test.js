@@ -2,7 +2,7 @@ import { test, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import registry from '../../registry/agent-registry.js';
-import { route } from '../../router-core/olympus-router.js';
+import { route } from '../../router-core/agora-router.js';
 import { dropToRaw } from '../../router-core/raw-logger.js';
 import idempotencyStore from '../../router-core/idempotency-store.js';
 
@@ -19,7 +19,7 @@ before(() => {
 
 beforeEach(() => {
   idempotencyStore.clear();
-  // logToSpool(olympus-router 내부) 실제 파일 쓰기 방지
+  // logToSpool(agora-router 내부) 실제 파일 쓰기 방지
   fs.promises.appendFile = async () => {};
 });
 

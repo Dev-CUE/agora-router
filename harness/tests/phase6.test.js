@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import registry from '../../registry/agent-registry.js';
 import idempotencyStore from '../../router-core/idempotency-store.js';
-import { route } from '../../router-core/olympus-router.js';
+import { route } from '../../router-core/agora-router.js';
 
 let captured = [];
 

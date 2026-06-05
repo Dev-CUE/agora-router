@@ -1,4 +1,4 @@
-# Olympus_Harness.md — 테스트 하네스 명세
+# Agora_Harness.md — 테스트 하네스 명세
 
 > 코딩 에이전트가 **스스로 구현을 검증**하기 위한 테스트 골격. PRD의 Exit Criteria(T1.1~T7.4)를 node:test로 실행 가능한 형태로 매핑한다.
 > 에이전트는 각 Phase 구현 후 해당 테스트를 직접 실행하고 통과율을 보고해야 한다.

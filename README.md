@@ -1,145 +1,178 @@
-# Olympus Router
+# Agora Router
 
-복수의 AI 에이전트를 Telegram / Slack / Discord 등 여러 플랫폼에서 운영하는 **범용 멀티 플랫폼 AI 조직 운영 인프라**.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-blue.svg)](https://nodejs.org)
 
-라우터는 메시지를 격리하고, 에이전트 인격은 플랫폼 초월 공유하며, 에이전트 간 협업(A2A)을 안전하게 중개한다.
+A universal, multi-platform AI organization operation infrastructure designed to run multiple AI agents across various messaging platforms (Telegram, Slack, Discord).
 
----
-
-## 핵심 설계 원칙
-
-| 원칙 | 설명 |
-|------|------|
-| **Dumb Pipe** | 라우터 코어는 텍스트를 파싱하지 않는다. JSON 엔벨롭의 목적지(to/cc) 검증과 병렬 패스스루만 수행 |
-| **Zero Hardcoding** | 코드 어디에도 에이전트 이름을 직접 쓰지 않는다. 모든 에이전트 정보는 `config/agents.yaml` |
-| **3축 격리** | MESSAGE(방마다 격리) / PERSONA(플랫폼 초월 공유) / KNOWLEDGE(조직 공용) |
-| **Stage-Gated** | Phase를 순서대로만 구현. Exit Criteria 100% 통과 후 다음 Phase 진행 |
+Agora Router isolates messaging contexts, shares agent personas across platforms, and safely mediates Agent-to-Agent (A2A) collaboration.
 
 ---
 
-## 3축 격리 모델
+## What is Agora Router?
 
-| 축 | 키 | 격리/공유 |
-|----|----|-----------|
-| MESSAGE | `context_key` | 방마다 완전 격리 |
-| PERSONA | `{agent_id}` | 플랫폼 초월 공유 (Mem0) |
-| KNOWLEDGE | Obsidian | 플랫폼 초월 공용 |
+Agora Router operates on a **3-Axis Isolation & Sharing Model** to coordinate multiple agents seamlessly:
 
-> `persona_key: "telegram:zeus"` ❌ — 플랫폼 prefix 금지  
-> `persona_key: "zeus"` ✅
+1. **Message Isolation (MESSAGE)**: Every chat space (group, thread, or DM) is completely isolated using a `context_key`. Conversation logs from one room never leak to another.
+2. **Persona Sharing (PERSONA)**: Agent identities and memories are shared across platforms. Zeus on Telegram is the same Zeus on Slack or Discord, identified by `{agent_id}`.
+3. **Knowledge Commoning (KNOWLEDGE)**: All agents and platforms share a single Obsidian-based organization knowledge base, structured asynchronously.
 
 ---
 
-## 디렉터리 구조
+## Key Features
+
+- **Dumb Pipe Core**: The core router is completely stateless, performing zero text parsing or LLM calls. It only validates routing destinations and dispatches envelopes.
+- **Zero Hardcoding**: No agent names or configurations are hardcoded. Everything is loaded dynamically from `config/agents.yaml`.
+- **Non-blocking Parallel Dispatch**: Parallel routing using Node.js `Promise.allSettled` with fault isolation.
+- **A2A Collaboration**: Rich Agent-to-Agent collaboration supporting both `SINGLE` and `DIALOGUE` conversation modes with safety guards.
+- **Universal Adapters**: Modular integration paths for Telegram, Slack, and Discord.
+- **Platform-Absolute Isolation**: Prevents cross-platform messaging or A2A loops to enforce structural boundaries.
+
+---
+
+## Architecture
 
 ```
-olympus-router/
-├── config/
-│   └── agents.yaml           # 에이전트 레지스트리 (유일한 에이전트 정의 위치)
-├── router-core/
-│   ├── olympus-router.js     # 라우터 코어 — 병렬 디스패치, A2A 가드 호출
-│   ├── a2a-guard.js          # A2A 검증 — 권한/라운드/발화 한도/스푸핑 방지
-│   ├── idempotency-store.js  # 멱등성 처리 (중복 요청 202 드롭)
-│   └── raw-logger.js         # Raw 드롭 — fire-and-forget JSONL 기록
-├── registry/
-│   └── agent-registry.js     # YAML 기반 에이전트 레지스트리
-├── adapters/
-│   ├── telegram-adapter.js
-│   ├── slack-adapter.js
-│   └── discord-adapter.js
-└── harness/
-    ├── fixtures/             # 테스트용 YAML 설정
-    └── tests/                # Phase 1~7 단위 테스트 + E2E 통합 테스트
+[ Users ]
+   |
+   v
+[ Universal Adapters ] (Telegram / Slack / Discord ...)   <- Smart Edge
+   |  +- Generate context_key & persona_key
+   |  +- Parse mentions, DMs, threads
+   |  +- Render UI (emojis, markdown, A2A progression)
+   v  (Standard JSON Ingress)
+[ Agora Router Core ]                                    <- Dumb Pipe
+   |  +- Validate destinations against agents.yaml
+   |  +- Run A2A Guard (permissions, speaker/round limits, spoofing check)
+   |  +- Promise.allSettled parallel dispatch
+   |  +- (Optional) Drop raw messages to spool
+   |
+   +--------------+--------------+
+   v              v              v
+[ Agent A(to) ] [ Agent B(to) ] [ Agent C(cc) ]          <- Brains
+   |  +- Re-enter router for A2A if needed
+   |  +- Resolve memories (Mem0 / Obsidian)
+   |
+  Mem0 (agent_id, cross-platform persona)
 ```
 
 ---
 
-## 기술 스택
+## Quick Start
 
-- **언어**: Node.js (ESM)
-- **병렬**: `Promise.allSettled`
-- **테스트**: `node:test` + `node:assert`
-- **설정**: YAML (`config/agents.yaml`)
-- **HTTP**: Node 내장 `fetch`
+### 1. Install Dependencies
+Ensure you have Node.js (v20+) installed. Clone the repository and install dependencies:
+```bash
+git clone <repository-url> agora-router
+cd agora-router
+npm install
+```
+
+### 2. Configure Agents
+Copy the example configuration file and register your agents:
+```bash
+cp config/agents.example.yaml config/agents.yaml
+```
+Open `config/agents.yaml` and configure your agent IDs and service endpoints.
+
+### 3. Run Tests
+Verify the installation by running the test suite:
+```bash
+# Run all tests (Phase 1-7 + E2E integration)
+npm test
+```
 
 ---
 
-## 에이전트 등록
-
-`config/agents.yaml` 에 에이전트를 추가하면 코드 수정 없이 즉시 라우팅된다.
+## Configuration (agents.yaml)
 
 ```yaml
+system:
+  a2a:
+    max_speaker_calls: 10      # Individual agent speaker limit
+    max_rounds: 10             # Maximum rounds in DIALOGUE mode
+    default_mode: "single"     # "single" | "dialogue"
+    allow_self_call: false
+    allow_cross_platform: false
+  wiki:
+    raw_logging_enabled: false  # Save raw message spool for KB ingestion
+    raw_path: "data/wiki/raw/"
+
 agents:
-  - id: "myAgent"
-    url: "http://my-agent-host:3001"
+  - id: "agent-a"
+    url: "http://your-agent-a:3001"
     a2a:
       can_initiate: true
       allowed_targets: "*"
+
+  - id: "agent-b"
+    url: "http://your-agent-b:3002"
+    a2a:
+      can_initiate: true
+      allowed_targets: "*"
+
+  - id: "agent-c"
+    url: "http://your-agent-c:3003"
+    a2a:
+      can_initiate: false
+      allowed_targets: []
 ```
 
 ---
 
-## 메시지 엔벨롭
+## A2A Modes
 
-```json
-{
-  "context_key": "telegram:group:G1:root",
-  "routing": {
-    "to": ["agentA", "agentB"],
-    "cc": ["agentC"]
-  },
-  "payload": {
-    "origin_platform": "telegram",
-    "text": "메시지 내용"
-  },
-  "idempotency_key": "telegram:G1:root:msg_001"
-}
-```
+Agora Router supports two communication styles for Agent-to-Agent interaction:
 
-- `to`: 응답 대상 에이전트 (병렬 호출)
-- `cc`: 청취 전용 에이전트 (fire-and-forget)
-- `idempotency_key`: 중복 요청 방지 (재전송 시 202 반환)
+| Mode | Flow | Termination Triggers |
+|---|---|---|
+| `single` | Q&A style. Initiator calls target, target replies, dialogue terminates immediately. | Direct reply. |
+| `dialogue` | Multi-agent discussion. Multi-turn conversation among participants. | 1. Any agent sends `resolved` status (early exit).<br>2. Total turns reach `max_rounds`.<br>3. Any single agent reaches `max_speaker_calls`. |
 
 ---
 
-## A2A (Agent-to-Agent) 협업
+## Error Codes
 
-에이전트 간 협업 모드를 지원한다.
+Agora Router uses standard error codes in its A2A and routing guards:
 
-```json
-{
-  "a2a": {
-    "enabled": true,
-    "mode": "single",
-    "caller": "agentA",
-    "parent_platform": "telegram",
-    "max_speaker_calls": 10,
-    "max_rounds": 10,
-    "round": 1,
-    "speaker_counts": {}
-  }
-}
-```
-
-| 모드 | 설명 |
-|------|------|
-| `single` | 1문 1답. caller가 target에게 질의 후 즉시 종료 |
-| `dialogue` | 다자 순환 대화. `resolved` 신호 또는 라운드 한도 도달 시 종료 |
+| Error Code | Description |
+|---|---|
+| `UNKNOWN_AGENT` | Destination agent ID is not registered in `agents.yaml`. |
+| `A2A_INITIATION_DENIED` | Agent attempted to initiate A2A, but has `can_initiate: false`. |
+| `A2A_UNAUTHORIZED` | Target agent is not in the initiator's `allowed_targets` list. |
+| `A2A_SELF_CALL` | Agent attempted to initiate an A2A call to itself. |
+| `A2A_CROSS_PLATFORM_DENIED` | A2A call crossing different platform boundaries was blocked. |
+| `A2A_SPOOF_DETECTED` | Caller agent ID does not match the incoming source URL. |
+| `A2A_ROUND_LIMIT_EXCEEDED` | Dialogue reached the maximum round limit (`max_rounds`). |
+| `A2A_SPEAKER_LIMIT_EXCEEDED` | A single agent exceeded the speech count limit (`max_speaker_calls`). |
 
 ---
 
-## 테스트 실행
+## Project Structure
 
-```bash
-# E2E 통합 테스트
-node --test harness/tests/e2e.test.js
-
-# 전체 테스트 (Phase 1~7 + E2E)
-node --test harness/tests/phase1.test.js harness/tests/phase2.test.js \
-  harness/tests/phase3.test.js harness/tests/phase4.test.js \
-  harness/tests/phase5.test.js harness/tests/phase6.test.js \
-  harness/tests/phase7.test.js harness/tests/e2e.test.js
-
-# 하드코딩 검사
-grep -rE '\b(agent_name_here)\b' router-core/ adapters/ registry/
 ```
+agora-router/
+├── config/
+│   ├── agents.yaml            # Active agent configuration (gitignored)
+│   └── agents.example.yaml    # Example template for agents.yaml
+├── router-core/
+│   ├── agora-router.js        # Core routing, parallel dispatch & spool logging
+│   ├── a2a-guard.js           # A2A validation (permissions, round limits, spoof checks)
+│   ├── idempotency-store.js   # Ingress idempotency check (deduplication)
+│   └── raw-logger.js          # Fire-and-forget logging to raw wiki spool
+├── registry/
+│   └── agent-registry.js      # Dynamic registry loader for config/agents.yaml
+├── adapters/
+│   ├── telegram-adapter.js    # Telegram webhook parsing, context-key & UI rendering
+│   ├── slack-adapter.js       # Slack event subscription, thread context adapter
+│   └── discord-adapter.js     # Discord gateway/webhook adapter
+└── harness/
+    ├── tests/                 # Unit & E2E integration test suites
+    └── fixtures/              # Test configuration YAML files
+```
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](file:///C:/DEV/claude/olympus-router/LICENSE) file for details.

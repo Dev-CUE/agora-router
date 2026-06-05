@@ -1,4 +1,4 @@
-# Olympus Router — PRD & Implementation Plan
+# Agora Router — PRD & Implementation Plan
 
 > **버전**: v6.4 (Final — 아테나 검토 반영판)
 > **상태**: Phase 0 (설계 확정 완료) → Phase 1 착수 대기
@@ -9,7 +9,7 @@
 
 ## 0. AI 에이전트용 실행 지침 (READ FIRST)
 
-당신은 Olympus Universal Architecture를 구현하는 코딩 에이전트다. 다음 불변 원칙을 위반하는 코드는 거부된다.
+당신은 Agora Universal Architecture를 구현하는 코딩 에이전트다. 다음 불변 원칙을 위반하는 코드는 거부된다.
 
 1. **Dumb Pipe**: 라우터 코어는 텍스트를 파싱하지 않는다. 비즈니스 로직·LLM 호출·문자열 의도 분석 금지. 오직 JSON 엔벨롭의 목적지 검증과 병렬 패스스루만 수행한다.
 2. **Zero Hardcoding**: 코드 어디에도 `zeus` / `hera` / `athena` 같은 에이전트 이름을 직접 쓰지 않는다. 모든 에이전트는 `config/agents.yaml`에서만 정의되고 registry를 통해 동적 조회된다.
@@ -66,7 +66,7 @@
    |  +- @멘션 / DM / 토픽·스레드 파싱
    |  +- UI 렌더링 (이모지/마크다운, A2A 전 과정 표시)
    v  (Standard JSON Ingress)
-[ Olympus Router Core ]                                    <- Dumb Pipe
+[ Agora Router Core ]                                    <- Dumb Pipe
    |  +- agents.yaml 기반 to/cc 검증
    |  +- A2A 가드 (권한 / 발화자 한도 / 라운드 / 조기종료)
    |  +- Promise.allSettled 병렬 디스패치

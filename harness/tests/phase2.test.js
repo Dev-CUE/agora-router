@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import registry from '../../registry/agent-registry.js';
-import { route } from '../../router-core/olympus-router.js';
+import { route } from '../../router-core/agora-router.js';
 
 function startServer(port, handler) {
   return new Promise((resolve, reject) => {

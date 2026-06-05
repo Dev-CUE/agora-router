@@ -1,7 +1,7 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import registry from '../../registry/agent-registry.js';
-import { route } from '../../router-core/olympus-router.js';
+import { route } from '../../router-core/agora-router.js';
 
 // T1.1~T1.3, T1.5: Phase 1 라우터는 실제 HTTP 호출 없음 — mock 서버 불필요
 

@@ -2,7 +2,7 @@ import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import registry from '../../registry/agent-registry.js';
 import { validateA2A, A2AError, A2AResolved } from '../../router-core/a2a-guard.js';
-import { route } from '../../router-core/olympus-router.js';
+import { route } from '../../router-core/agora-router.js';
 
 let captured = [];
 

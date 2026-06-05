@@ -1,5 +1,5 @@
 {
-  "name": "olympus-router",
+  "name": "agora-router",
   "version": "1.0.0",
   "description": "Multi-platform AI agent routing infrastructure for Telegram, Slack, and Discord",
   "type": "module",

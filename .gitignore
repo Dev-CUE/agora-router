@@ -1,5 +1,31 @@
+# Dependencies
 node_modules/
-harness/tmp/
+
+# 실제 운영 설정 (절대 커밋 금지)
+config/agents.yaml
+
+# 운영 데이터
 data/wiki/raw/
-*.log
+
+# 환경변수
 .env
+.env.local
+.env.*.local
+
+# 로그
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# 테스트 임시 파일
+harness/tmp/
+
+# Claude Code 설정 (로컬 전용)
+.claude/settings.local.json
