@@ -108,5 +108,12 @@ export async function route(envelope) {
 
   logToSpool(envelope, results).catch(() => {});
 
+  if (a2a?.mode === 'dialogue') {
+    const isResolved = results.some(r => r.status === 'success' && r.a2a_status === 'resolved');
+    if (isResolved) {
+      return { ok: true, context_key, a2a_termination: { reason: 'resolved' }, results };
+    }
+  }
+
   return { ok: true, context_key, results };
 }

@@ -18,4 +18,4 @@ agents:
     a2a: { can_initiate: true,  allowed_targets: "*" }
   - id: "athena"
     url: "http://athena-agent:3003"
-    a2a: { can_initiate: false, allowed_targets: [] }
+    a2a: { can_initiate: true, allowed_targets: "*" }
