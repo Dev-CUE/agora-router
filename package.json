@@ -1,0 +1,27 @@
+{
+  "name": "olympus-router",
+  "version": "1.0.0",
+  "description": "Multi-platform AI agent routing infrastructure for Telegram, Slack, and Discord",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "test": "node --test harness/tests/phase1.test.js harness/tests/phase2.test.js harness/tests/phase3.test.js harness/tests/phase4.test.js harness/tests/phase5.test.js harness/tests/phase6.test.js harness/tests/phase7.test.js harness/tests/e2e.test.js",
+    "test:e2e": "node --test harness/tests/e2e.test.js"
+  },
+  "keywords": [
+    "ai-agent",
+    "router",
+    "telegram",
+    "slack",
+    "discord",
+    "multi-platform",
+    "a2a"
+  ],
+  "author": "Dev-CUE",
+  "license": "ISC",
+  "dependencies": {
+    "js-yaml": "^4.2.0"
+  }
+}
