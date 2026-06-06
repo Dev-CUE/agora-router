@@ -35,8 +35,8 @@ export function validateA2A(a2a, routing, payload, response) {
     const status = response?.a2a_status;
     if (status === 'resolved' || status === 'out')
       throw new A2AResolved();
-    if (status !== 'over' && status !== undefined) {
-      console.warn(`[A2A] ${currentCaller} responded without over/out signal (got: ${status})`);
+    if (status === undefined) {
+      console.warn(`[A2A] ${currentCaller} responded without over/out/resolved signal`);
     }
   }
 

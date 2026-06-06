@@ -62,17 +62,14 @@ export async function route(envelope) {
     }
   }
 
-  const isTest = process.argv.some(arg => arg.includes('test') || arg.includes('harness'));
-  const isDialogueMidRound = a2a?.enabled && a2a?.mode === 'dialogue' && !a2a?.is_resolved;
-
-  // 1단계: persona_key=null로 일단 디스패치 (BF2-7: 테스트 환경에서는 legacy 검증을 위해 기존 규칙 호환성 유지)
+  // 1단계 디스패치: DIALOGUE 중간 라운드는 null, 그 외(비-A2A/resolved)는 agent_id
   const toPromises = routing.to.map(id =>
     dispatchToAgent(id, {
       ...envelope,
       a2a,
       memory_scope: {
         space_key: context_key,
-        persona_key: isTest ? (isDialogueMidRound ? null : id) : null
+        persona_key: (a2a?.enabled && a2a?.mode === 'dialogue' && !a2a?.is_resolved) ? null : id
       },
       mode: 'respond'
     })
