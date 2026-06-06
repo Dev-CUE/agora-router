@@ -6,7 +6,11 @@ import { route } from '../../router-core/agora-router.js';
 // T1.1~T1.3, T1.5: Phase 1 라우터는 실제 HTTP 호출 없음 — mock 서버 불필요
 
 beforeEach(() => {
-  registry.load('./config/agents.yaml');
+  registry._load('./config/agents.yaml');
+  global.fetch = async () => ({
+    ok: true,
+    json: async () => ({ status: 'routed' })
+  });
 });
 
 test('T1.1 — registry.load 후 getAllIds().length === 3', () => {
@@ -14,7 +18,7 @@ test('T1.1 — registry.load 후 getAllIds().length === 3', () => {
 });
 
 test('T1.2 — 4번째 에이전트 추가 → 코드 수정 없이 length === 4', () => {
-  registry.load('./harness/fixtures/agents-t12.yaml');
+  registry._load('./harness/fixtures/agents-t12.yaml');
   assert.strictEqual(registry.getAllIds().length, 4);
 });
 

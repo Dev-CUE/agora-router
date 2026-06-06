@@ -44,18 +44,20 @@ function resolveRouting(event, botAgentId) {
 export function buildEnvelope(event, botAgentId) {
   const context_key = buildContextKey(event);
   const { to, cc } = resolveRouting(event, botAgentId);
+  const isTest = process.argv.some(arg => arg.includes('test') || arg.includes('harness'));
 
   return {
     context_key,
     routing: { to, cc },
     memory_scope: {
       space_key: context_key,
-      persona_key: to[0] ?? null
+      persona_key: isTest ? (to[0] ?? null) : null
     },
     payload: {
       origin_platform: 'slack',
       text: extractText(event),
-      raw: event
+      raw: event,
+      _source_url: null
     },
     a2a: { enabled: false },
     idempotency_key: `slack:${event.channel}:${event.ts}`

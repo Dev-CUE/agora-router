@@ -173,6 +173,16 @@ agora-router/
 
 ---
 
+## Operations
+
+- **Configuration Reload**: When `agents.yaml` is modified, you must restart the server process to apply the changes (as it is loaded once upon initialization).
+- **Idempotency TTL**: After a server restart, duplicate messages sent within 1 hour may be processed again due to the 1-hour Time-To-Live (TTL) limit of the idempotency store.
+- **A2A Walkie-Talkie Signals**:
+  - `resolved` / `out`: Initiates dialogue early termination and stops routing.
+  - `over`: Signal indicating it is the next agent's turn to speak.
+
+---
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](file:///C:/DEV/claude/olympus-router/LICENSE) file for details.

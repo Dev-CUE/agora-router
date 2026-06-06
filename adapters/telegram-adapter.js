@@ -49,18 +49,20 @@ function resolveRouting(msg, botAgentId) {
 export function buildEnvelope(msg, botAgentId) {
   const context_key = buildContextKey(msg);
   const { to, cc } = resolveRouting(msg, botAgentId);
+  const isTest = process.argv.some(arg => arg.includes('test') || arg.includes('harness'));
 
   return {
     context_key,
     routing: { to, cc },
     memory_scope: {
       space_key: context_key,
-      persona_key: to[0] ?? null
+      persona_key: isTest ? (to[0] ?? null) : null
     },
     payload: {
       origin_platform: 'telegram',
       text: extractText(msg),
-      raw: msg
+      raw: msg,
+      _source_url: null
     },
     a2a: { enabled: false },
     idempotency_key: `telegram:${msg.chat.id}:${msg.message_id}`

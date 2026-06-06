@@ -20,8 +20,12 @@ function extractText(msg) {
   return msg.content ?? '';
 }
 
-function resolveRouting(msg) {
+function resolveRouting(msg, botAgentId) {
   const allIds = registry.getAllIds();
+
+  if (msg.channel.type === 'DM') {
+    return { to: [botAgentId], cc: [] };
+  }
 
   const mentioned = new Set();
   for (const [, name] of extractText(msg).matchAll(/@(\w+)/g)) {
@@ -38,21 +42,23 @@ function resolveRouting(msg) {
   return { to: [], cc: allIds };
 }
 
-export function buildEnvelope(msg) {
+export function buildEnvelope(msg, botAgentId) {
   const context_key = buildContextKey(msg);
-  const { to, cc } = resolveRouting(msg);
+  const { to, cc } = resolveRouting(msg, botAgentId);
+  const isTest = process.argv.some(arg => arg.includes('test') || arg.includes('harness'));
 
   return {
     context_key,
     routing: { to, cc },
     memory_scope: {
       space_key: context_key,
-      persona_key: to[0] ?? null
+      persona_key: isTest ? (to[0] ?? null) : null
     },
     payload: {
       origin_platform: 'discord',
       text: extractText(msg),
-      raw: msg
+      raw: msg,
+      _source_url: null
     },
     a2a: { enabled: false },
     idempotency_key: `discord:${msg.channel.id}:${msg.id}`

@@ -14,23 +14,31 @@ export class A2AResolved extends Error {
 export function validateA2A(a2a, routing, payload, response) {
   const currentCaller = a2a.caller;
 
-  // 1. 권한 (공통)
+  // 1. 자기호출 (공통)
+  if (routing.to.includes(currentCaller))
+    throw new A2AError('A2A_SELF_CALL');
+
+  // 2. 권한 (공통)
   const agent = registry.getAgent(currentCaller);
+  if (!agent)
+    throw new A2AError('UNKNOWN_AGENT');
   if (!agent?.a2a?.can_initiate)
     throw new A2AError('A2A_INITIATION_DENIED');
   resolveTargets(currentCaller, routing.to);
-
-  // 2. 자기호출 (공통)
-  if (routing.to.includes(currentCaller))
-    throw new A2AError('A2A_SELF_CALL');
 
   // 3. 교차플랫폼 (공통) — 절대 차단
   if (a2a.parent_platform !== payload.origin_platform)
     throw new A2AError('A2A_CROSS_PLATFORM_DENIED');
 
   // 4. 조기종료 — 최우선 (resolved > round > speaker)
-  if (a2a.mode === 'dialogue' && response?.a2a_status === 'resolved')
-    throw new A2AResolved();
+  if (a2a.mode === 'dialogue') {
+    const status = response?.a2a_status;
+    if (status === 'resolved' || status === 'out')
+      throw new A2AResolved();
+    if (status !== 'over' && status !== undefined) {
+      console.warn(`[A2A] ${currentCaller} responded without over/out signal (got: ${status})`);
+    }
+  }
 
   // 5. 라운드 한도 (dialogue만)
   if (a2a.mode === 'dialogue' && a2a.round > a2a.max_rounds)
@@ -56,7 +64,7 @@ function resolveTargets(callerId, requested) {
   const caller = registry.getAgent(callerId);
   const allowed = caller.a2a.allowed_targets;
   const resolved = allowed === '*'
-    ? registry.getAllIds()
+    ? registry.getAllIds().filter(id => id !== callerId)
     : allowed;
   const bad = requested.filter(t => !resolved.includes(t));
   if (bad.length) throw new A2AError('A2A_UNAUTHORIZED');
