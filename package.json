@@ -7,7 +7,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "test": "node --test harness/tests/phase1.test.js harness/tests/phase2.test.js harness/tests/phase3.test.js harness/tests/phase4.test.js harness/tests/phase5.test.js harness/tests/phase6.test.js harness/tests/phase7.test.js harness/tests/e2e.test.js",
+    "test": "node --test harness/tests/phase1.test.js harness/tests/phase2.test.js harness/tests/phase3.test.js harness/tests/phase4.test.js harness/tests/phase5.test.js harness/tests/phase6.test.js harness/tests/phase7.test.js harness/tests/e2e.test.js harness/tests/bugfix.test.js",
     "test:e2e": "node --test harness/tests/e2e.test.js"
   },
   "keywords": [

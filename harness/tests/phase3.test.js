@@ -87,20 +87,18 @@ test('T3.6 — Discord thread_id → context_key에 forum:parentId:threadId 포�
 });
 
 // T3.7
-test('T3.7 — persona_key === agent_id (플랫폼 prefix 없음)', () => {
+test('T3.7 — 어댑터는 persona_key를 주입하지 않음', () => {
   const tgDm = tgBuild(
     { message_id: 7, chat: { id: 12345, type: 'private' }, text: 'hi' },
     'agentA'
   );
-  assert.strictEqual(tgDm.memory_scope.persona_key, 'agentA');
-  assert.ok(!String(tgDm.memory_scope.persona_key).includes(':'), 'prefix 없음');
+  assert.strictEqual(tgDm.memory_scope.persona_key, null);
 
   const slDm = slBuild(
     { channel: 'D999', channel_type: 'im', text: 'hi', ts: '001' },
     'agentB'
   );
-  assert.strictEqual(slDm.memory_scope.persona_key, 'agentB');
-  assert.ok(!String(slDm.memory_scope.persona_key).includes(':'), 'prefix 없음');
+  assert.strictEqual(slDm.memory_scope.persona_key, null);
 });
 
 // T3.8

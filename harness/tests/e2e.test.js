@@ -68,7 +68,7 @@ test('E2 — SINGLE A2A: 1문1답 통합', async () => {
   const result = await route({
     context_key: 'telegram:group:CTEST:root',
     routing: { to: ['agentB'], cc: [] },
-    payload: { origin_platform: 'telegram', text: 'question?' },
+    payload: { origin_platform: 'telegram', text: 'question?', _source_url: registry.getUrl('agentA') },
     a2a: {
       enabled: true,
       mode: 'single',
@@ -107,7 +107,7 @@ test('E3 — DIALOGUE 2기: resolved 조기종료', async () => {
     const result = await route({
       context_key: 'telegram:group:CTEST:root',
       routing: { to: ['agentB'], cc: [] },
-      payload: { origin_platform: 'telegram', text: `round ${round}` },
+      payload: { origin_platform: 'telegram', text: `round ${round}`, _source_url: registry.getUrl('agentA') },
       a2a: {
         enabled: true,
         mode: 'dialogue',
@@ -159,7 +159,7 @@ test('E4 — DIALOGUE 3기: 각자 10회 보장', async () => {
       await route({
         context_key: 'telegram:group:CTEST:root',
         routing: { to: [target], cc: [] },
-        payload: { origin_platform: 'telegram' },
+        payload: { origin_platform: 'telegram', _source_url: registry.getUrl(caller) },
         a2a: {
           enabled: true,
           mode: 'dialogue',

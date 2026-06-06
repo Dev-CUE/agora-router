@@ -20,6 +20,16 @@ function extractText(msg) {
   return msg.content ?? '';
 }
 
+function findAgentByPlatformId(platform, mentionId) {
+  for (const id of registry.getAllIds()) {
+    const agent = registry.getAgent(id);
+    if (agent?.platform_ids?.[platform] === mentionId) {
+      return id;
+    }
+  }
+  return null;
+}
+
 function resolveRouting(msg, botAgentId) {
   const allIds = registry.getAllIds();
 
@@ -28,8 +38,9 @@ function resolveRouting(msg, botAgentId) {
   }
 
   const mentioned = new Set();
-  for (const [, name] of extractText(msg).matchAll(/@(\w+)/g)) {
-    if (allIds.includes(name)) mentioned.add(name);
+  for (const [, mentionId] of extractText(msg).matchAll(/<@!?([0-9]+)>/g)) {
+    const agentId = findAgentByPlatformId('discord', mentionId);
+    if (agentId) mentioned.add(agentId);
   }
 
   if (mentioned.size > 0) {
@@ -51,7 +62,7 @@ export function buildEnvelope(msg, botAgentId) {
     routing: { to, cc },
     memory_scope: {
       space_key: context_key,
-      persona_key: to[0] ?? null
+      persona_key: null
     },
     payload: {
       origin_platform: 'discord',

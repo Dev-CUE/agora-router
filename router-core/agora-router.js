@@ -1,7 +1,8 @@
-import fs from 'node:fs';
 import registry from '../registry/agent-registry.js';
 import { validateA2A, A2AResolved } from './a2a-guard.js';
 import idempotencyStore from './idempotency-store.js';
+import { dropToRaw } from './raw-logger.js';
+import sessionStore from './session-store.js';
 
 async function dispatchToAgent(id, envelope) {
   const url = registry.getUrl(id);
@@ -13,17 +14,6 @@ async function dispatchToAgent(id, envelope) {
   });
   if (!res.ok) throw new Error(`HTTP_ERROR: ${res.status}`);
   return await res.json();
-}
-
-async function logToSpool(envelope, results) {
-  const record = JSON.stringify({
-    ts: new Date().toISOString(),
-    context_key: envelope.context_key,
-    platform: envelope.payload?.origin_platform,
-    targets: envelope.routing.to,
-    results_count: results?.length ?? 0
-  }) + '\n';
-  await fs.promises.appendFile('data/wiki/raw/spool.jsonl', record);
 }
 
 export async function route(envelope) {
@@ -49,11 +39,22 @@ export async function route(envelope) {
 
   // A2A 가드 (a2a.enabled 시에만)
   if (a2a?.enabled) {
+    const limits = getRouterA2ALimits();
+    const sessionId = resolveSessionId(envelope, a2a);
+    a2a = {
+      ...a2a,
+      mode: a2a.mode ?? registry.system?.a2a?.default_mode ?? 'single',
+      session_id: sessionId,
+      max_speaker_calls: limits.max_speaker_calls,
+      max_rounds: limits.max_rounds
+    };
+
     try {
-      const updatedCounts = validateA2A(a2a, routing, payload, null);
+      const updatedCounts = validateA2A(a2a, routing, payload, null, { sessionId });
       a2a = { ...a2a, speaker_counts: updatedCounts };
     } catch (err) {
       if (err instanceof A2AResolved) {
+        sessionStore.clear(sessionId);
         return { ok: true, context_key,
           a2a_termination: { reason: 'resolved' }, results: [] };
       }
@@ -62,14 +63,14 @@ export async function route(envelope) {
     }
   }
 
-  // 1단계 디스패치: DIALOGUE 중간 라운드는 null, 그 외(비-A2A/resolved)는 agent_id
+  // 1단계 A2A 디스패치: persona 기록 판단은 settled 이후 _meta에서만 수행
   const toPromises = routing.to.map(id =>
     dispatchToAgent(id, {
       ...envelope,
       a2a,
       memory_scope: {
         space_key: context_key,
-        persona_key: (a2a?.enabled && a2a?.mode === 'dialogue' && !a2a?.is_resolved) ? null : id
+        persona_key: a2a?.enabled ? null : id
       },
       mode: 'respond'
     })
@@ -119,16 +120,38 @@ export async function route(envelope) {
     };
   });
 
-  // BF2-6: 설정 확인 후 실행
-  if (registry.system.wiki?.raw_logging_enabled) {
-    logToSpool(envelope, results).catch(() => {});
-  }
+  dropToRaw(envelope);
 
   if (a2a?.mode === 'dialogue') {
     if (isResolved) {
+      sessionStore.clear(a2a.session_id);
       return { ok: true, context_key, a2a_termination: { reason: 'resolved' }, results };
     }
   }
 
   return { ok: true, context_key, results };
+}
+
+function getRouterA2ALimits() {
+  const systemA2A = registry.system?.a2a ?? {};
+  return {
+    max_speaker_calls: positiveInteger(systemA2A.max_speaker_calls, 10),
+    max_rounds: positiveInteger(systemA2A.max_rounds, 10)
+  };
+}
+
+function positiveInteger(value, fallback) {
+  return Number.isInteger(value) && value > 0 ? value : fallback;
+}
+
+function resolveSessionId(envelope, a2a) {
+  if (a2a.session_id) return a2a.session_id;
+
+  const platform = envelope.payload?.origin_platform ?? a2a.parent_platform ?? 'unknown';
+  return [
+    'legacy',
+    platform,
+    envelope.context_key ?? 'no-context',
+    a2a.origin_agent ?? 'unknown-origin'
+  ].join(':');
 }

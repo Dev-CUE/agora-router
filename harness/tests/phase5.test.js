@@ -21,7 +21,7 @@ function makeA2A(overrides = {}) {
 }
 
 function makePayload(overrides = {}) {
-  return { origin_platform: 'telegram', ...overrides };
+  return { origin_platform: 'telegram', _source_url: 'http://zeus-agent:3001', ...overrides };
 }
 
 beforeEach(() => {
@@ -83,7 +83,7 @@ test('T5.3 — 3기 DIALOGUE 각자 10회 발화 보장 (라운드 10 도달)', 
       const counts = validateA2A(
         makeA2A({ mode: 'dialogue', caller, round, speaker_counts }),
         { to: [target], cc: [] },
-        makePayload(),
+        makePayload({ _source_url: registry.getUrl(caller) }),
         null
       );
       speaker_counts = counts;
@@ -222,9 +222,8 @@ test('T5.13 — DIALOGUE 중간 라운드 → persona_key 없음 (Mem0 미기록
   const envelope = {
     context_key: 'telegram:group:G1:root',
     routing: { to: ['hera'], cc: [] },
-    payload: { origin_platform: 'telegram' },
+    payload: makePayload(),
     a2a: makeA2A({ mode: 'dialogue', caller: 'zeus', round: 3 })
-    // is_resolved 없음 → 중간 라운드
   };
   await route(envelope);
   const dispatched = captured.find(c => c.url.includes('hera-agent'));
@@ -233,17 +232,24 @@ test('T5.13 — DIALOGUE 중간 라운드 → persona_key 없음 (Mem0 미기록
 });
 
 // T5.14
-test('T5.14 — DIALOGUE resolved → 최종만 Mem0 기록 (persona_key 설정됨)', async () => {
+test('T5.14 — DIALOGUE resolved → settled _meta에 최종 persona_key 설정됨', async () => {
+  global.fetch = async (url, opts) => {
+    captured.push({ url, body: JSON.parse(opts.body) });
+    return { ok: true, json: async () => ({ ok: true, a2a_status: 'resolved' }) };
+  };
+
   const envelope = {
     context_key: 'telegram:group:G1:root',
     routing: { to: ['hera'], cc: [] },
-    payload: { origin_platform: 'telegram' },
-    a2a: makeA2A({ mode: 'dialogue', caller: 'zeus', round: 5, is_resolved: true })
+    payload: makePayload(),
+    a2a: makeA2A({ mode: 'dialogue', caller: 'zeus', round: 5 })
   };
-  await route(envelope);
+  const result = await route(envelope);
   const dispatched = captured.find(c => c.url.includes('hera-agent'));
   assert.ok(dispatched, 'hera가 호출됨');
-  assert.strictEqual(dispatched.body.memory_scope.persona_key, 'hera');
+  assert.strictEqual(dispatched.body.memory_scope.persona_key, null);
+  assert.strictEqual(result.results[0]._meta.persona_key, 'hera');
+  assert.deepStrictEqual(result.a2a_termination, { reason: 'resolved' });
 });
 
 // T5.15
@@ -251,7 +257,7 @@ test('T5.15 — cc가 DIALOGUE 매 라운드 청취 (is_cc_only:true 확인)', a
   const envelope = {
     context_key: 'telegram:group:G1:root',
     routing: { to: ['hera'], cc: ['athena'] },
-    payload: { origin_platform: 'telegram' },
+    payload: makePayload(),
     a2a: makeA2A({ mode: 'dialogue', caller: 'zeus', round: 2 })
   };
   await route(envelope);

@@ -55,7 +55,7 @@ export function buildEnvelope(msg, botAgentId) {
     routing: { to, cc },
     memory_scope: {
       space_key: context_key,
-      persona_key: to[0] ?? null
+      persona_key: null
     },
     payload: {
       origin_platform: 'telegram',

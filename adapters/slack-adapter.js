@@ -19,6 +19,16 @@ function extractText(event) {
   return event.text ?? '';
 }
 
+function findAgentByPlatformId(platform, mentionId) {
+  for (const id of registry.getAllIds()) {
+    const agent = registry.getAgent(id);
+    if (agent?.platform_ids?.[platform] === mentionId) {
+      return id;
+    }
+  }
+  return null;
+}
+
 function resolveRouting(event, botAgentId) {
   const allIds = registry.getAllIds();
 
@@ -27,8 +37,9 @@ function resolveRouting(event, botAgentId) {
   }
 
   const mentioned = new Set();
-  for (const [, name] of extractText(event).matchAll(/@(\w+)/g)) {
-    if (allIds.includes(name)) mentioned.add(name);
+  for (const [, mentionId] of extractText(event).matchAll(/<@([A-Z0-9]+)>/g)) {
+    const agentId = findAgentByPlatformId('slack', mentionId);
+    if (agentId) mentioned.add(agentId);
   }
 
   if (mentioned.size > 0) {
@@ -50,7 +61,7 @@ export function buildEnvelope(event, botAgentId) {
     routing: { to, cc },
     memory_scope: {
       space_key: context_key,
-      persona_key: to[0] ?? null
+      persona_key: null
     },
     payload: {
       origin_platform: 'slack',

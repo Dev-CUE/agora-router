@@ -40,7 +40,9 @@ test('BF.1 — DIALOGUE: agent가 a2a_status=resolved 응답 시 a2a_termination
     json: async () => ({ ok: true, a2a_status: 'resolved' })
   });
 
-  const result = await route(makeDialogueEnvelope());
+  const result = await route(makeDialogueEnvelope({
+    payload: { origin_platform: 'telegram', _source_url: registry.getUrl('zeus') }
+  }));
 
   assert.ok(result.ok);
   assert.deepStrictEqual(result.a2a_termination, { reason: 'resolved' });
@@ -53,7 +55,9 @@ test('BF.2 — DIALOGUE: a2a_status=resolved 없으면 a2a_termination 미포함
     json: async () => ({ ok: true })
   });
 
-  const result = await route(makeDialogueEnvelope());
+  const result = await route(makeDialogueEnvelope({
+    payload: { origin_platform: 'telegram', _source_url: registry.getUrl('zeus') }
+  }));
 
   assert.ok(result.ok);
   assert.strictEqual(result.a2a_termination, undefined);

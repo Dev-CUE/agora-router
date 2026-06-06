@@ -6,6 +6,7 @@ system:
   a2a:
     max_speaker_calls: 10      # Per-agent call limit (SINGLE & DIALOGUE)
     max_rounds: 10             # DIALOGUE round limit
+    session_ttl_ms: 3600000    # Session counter TTL in milliseconds
     default_mode: "single"    # "single" | "dialogue"
     allow_self_call: false
     allow_cross_platform: false
@@ -16,18 +17,27 @@ system:
 agents:
   - id: "agent-a"                          # Unique agent identifier
     url: "http://your-agent-a:3001"        # Agent server URL
+    platform_ids:
+      slack: "U_AGENT_A"                   # Slack mention ID from <@U_AGENT_A>
+      discord: "100000000000000001"        # Discord mention ID from <@100000000000000001>
     a2a:
       can_initiate: true                   # Can this agent initiate A2A?
       allowed_targets: "*"                 # "*" = all | [] = receive only | ["agent-b"] = specific
 
   - id: "agent-b"
     url: "http://your-agent-b:3002"
+    platform_ids:
+      slack: "U_AGENT_B"
+      discord: "100000000000000002"
     a2a:
       can_initiate: true
       allowed_targets: "*"
 
   - id: "agent-c"
     url: "http://your-agent-c:3003"
+    platform_ids:
+      slack: "U_AGENT_C"
+      discord: "100000000000000003"
     a2a:
       can_initiate: false                  # Receive-only agent
       allowed_targets: []
